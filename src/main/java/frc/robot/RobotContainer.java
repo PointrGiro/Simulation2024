@@ -10,11 +10,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.DriveCommands;
-import frc.robot.commands.GoToSpeakerCommand;
+import frc.robot.commands.DriveCommands.DriveCommands;
+import frc.robot.commands.DriveCommands.GoToSpeakerCommand;
 import frc.robot.subsystems.Drive.Drive;
 import frc.robot.subsystems.Drive.GyroIO;
 import frc.robot.subsystems.Drive.ModuleIOSim;
+import frc.robot.subsystems.Vision.VisionIOSim;
 
 public class RobotContainer {
   private final Drive drive;
@@ -24,12 +25,12 @@ public class RobotContainer {
 
   public RobotContainer() {
     drive = new Drive(
-        new GyroIO() {
-        },
+        new GyroIO() { },
         new ModuleIOSim(),
         new ModuleIOSim(),
         new ModuleIOSim(),
-        new ModuleIOSim());
+        new ModuleIOSim(),
+        new VisionIOSim());
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 

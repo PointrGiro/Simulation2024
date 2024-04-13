@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.DriveCommands;
 
 import java.util.List;
 
@@ -17,21 +17,22 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.Drive.Drive;
 
-public class GoToSpeakerCommand extends Command {
+public class GoToPointCommand  extends Command {
         private final Drive drive;
         private CommandScheduler scheduler;
+        private final Pose2d targetPose;
 
-        public GoToSpeakerCommand(
-                        Drive drive, CommandScheduler scheduler) {
+        public GoToPointCommand(
+                        Drive drive, CommandScheduler scheduler, Pose2d targetPose) {
                 this.drive = drive;
                 this.scheduler = scheduler;
+                this.targetPose = targetPose;
                 addRequirements(drive);
         }
 
         @Override
         public void initialize() {
-
-                Pose2d targetPose = new Pose2d(4.25, 7.20, Rotation2d.fromDegrees(21.68));
+            
 
                 PathConstraints constraints = new PathConstraints(
                                 3.0, 3.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -41,7 +42,7 @@ public class GoToSpeakerCommand extends Command {
 
                 List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(targetPose, targetPose);
 
-                PathPlannerPath path = new PathPlannerPath(bezierPoints, constraints, new GoalEndState(0.0, Rotation2d.fromDegrees(21.68)));
+                PathPlannerPath path = new PathPlannerPath(bezierPoints, constraints, new GoalEndState(0.0, targetPose.getRotation()));
                 path.preventFlipping = true;
 
                 Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(
@@ -68,3 +69,4 @@ public class GoToSpeakerCommand extends Command {
         }
 
 }
+

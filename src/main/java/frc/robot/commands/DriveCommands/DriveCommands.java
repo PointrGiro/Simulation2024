@@ -1,6 +1,8 @@
-package frc.robot.commands;
+package frc.robot.commands.DriveCommands;
 
 import java.util.function.DoubleSupplier;
+
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,7 +12,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.Drive.Drive;
@@ -37,7 +38,9 @@ public class DriveCommands {
           Rotation2d linearDirection =
               new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
-          SmartDashboard.putNumber("Eksen Value", omegaSupplier.getAsDouble());
+          Logger.recordOutput("X Value", xSupplier.getAsDouble());
+          Logger.recordOutput("Y Value", ySupplier.getAsDouble());
+          Logger.recordOutput("Z Value", omegaSupplier.getAsDouble());
 
           // Square values
           linearMagnitude = linearMagnitude * linearMagnitude;

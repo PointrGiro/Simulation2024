@@ -19,9 +19,14 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.DriveCommands.GoToPointCommand;
+import frc.robot.subsystems.Vision.VisionIO;
+import frc.robot.subsystems.Vision.VisionIOInputsAutoLogged;
 
 public class Drive extends SubsystemBase {
     private static final double MAX_LINEAR_SPEED = Units.feetToMeters(14.5);
@@ -33,6 +38,9 @@ public class Drive extends SubsystemBase {
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
     private final Module[] modules = new Module[4]; // FL, FR, BL, BR
+
+    private final VisionIO visionIO;
+    private final VisionIOInputsAutoLogged visionInputs = new VisionIOInputsAutoLogged();
 
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
     private Rotation2d rawGyroRotation = new Rotation2d();
@@ -52,12 +60,15 @@ public class Drive extends SubsystemBase {
             ModuleIO flModuleIO,
             ModuleIO frModuleIO,
             ModuleIO blModuleIO,
-            ModuleIO brModuleIO) {
+            ModuleIO brModuleIO,
+            VisionIO visionIO) {
         this.gyroIO = gyroIO;
         modules[0] = new Module(flModuleIO, 0);
         modules[1] = new Module(frModuleIO, 1);
         modules[2] = new Module(blModuleIO, 2);
         modules[3] = new Module(brModuleIO, 3);
+
+        this.visionIO = visionIO;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
@@ -85,6 +96,21 @@ public class Drive extends SubsystemBase {
     public void periodic() {
         gyroIO.updateInputs(gyroInputs);
         Logger.processInputs("Drive/Gyro", gyroInputs);
+
+        visionIO.updateInputs(visionInputs, getPose());
+        Logger.processInputs("Vision", visionInputs);
+
+        if (visionInputs.hasEstimate) {
+            for (int i = 0; i < visionInputs.estimate.length; i++) {
+                poseEstimator.addVisionMeasurement(visionInputs.estimate[i], Timer.getFPGATimestamp());
+            }
+
+            if (visionInputs.amphiSighted && !DriverStation.isAutonomous()) {
+                Pose2d target = new Pose2d(1.78, 7.38, Rotation2d.fromDegrees(90));
+                CommandScheduler.getInstance().schedule(new GoToPointCommand(this, CommandScheduler.getInstance(), target));
+            }
+
+        }
 
         for (var module : modules) {
             module.periodic();
