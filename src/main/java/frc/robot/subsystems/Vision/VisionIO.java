@@ -35,6 +35,7 @@ public interface VisionIO {
 
         public boolean hasEstimate = false;
         public boolean amphiSighted = false;
+        public boolean loadingSighted = false;
     }
 
     public default void updateInputs(VisionIOInputs inputs, Pose2d estimate) {
@@ -247,6 +248,25 @@ public interface VisionIO {
                 PhotonTrackedTarget target = result.getBestTarget();
                 if (target.getFiducialId() == 6)
                     return true;
+            }
+        }
+        return false;
+    }
+
+    public default boolean loadingSeenIn(PhotonPipelineResult[] results) {
+        for (PhotonPipelineResult result : results) {
+            if (goodResult(result)) {
+                List<PhotonTrackedTarget> targets = result.getTargets();
+                boolean firstTargetDetected = false;
+                boolean secondTargetDetected = false;
+                for(PhotonTrackedTarget target : targets){
+                    if(target.getFiducialId() == 1){
+                        firstTargetDetected = true;
+                    }else if(target.getFiducialId() == 2){
+                        secondTargetDetected = true;
+                    }
+                }
+                return firstTargetDetected && secondTargetDetected;
             }
         }
         return false;

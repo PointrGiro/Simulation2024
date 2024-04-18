@@ -17,22 +17,24 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.Drive.Drive;
 
-public class GoToPointCommand  extends Command {
+public class GoToPointCommand extends Command {
         private final Drive drive;
         private CommandScheduler scheduler;
         private final Pose2d targetPose;
 
+        private final boolean flipping;
+
         public GoToPointCommand(
-                        Drive drive, CommandScheduler scheduler, Pose2d targetPose) {
+                        Drive drive, CommandScheduler scheduler, Pose2d targetPose, boolean flipping) {
                 this.drive = drive;
                 this.scheduler = scheduler;
                 this.targetPose = targetPose;
+                this.flipping = flipping;
                 addRequirements(drive);
         }
 
         @Override
         public void initialize() {
-            
 
                 PathConstraints constraints = new PathConstraints(
                                 3.0, 3.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -42,13 +44,15 @@ public class GoToPointCommand  extends Command {
 
                 List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(targetPose, targetPose);
 
-                PathPlannerPath path = new PathPlannerPath(bezierPoints, constraints, new GoalEndState(0.0, targetPose.getRotation()));
-                path.preventFlipping = true;
+                PathPlannerPath path = new PathPlannerPath(bezierPoints, constraints,
+                                new GoalEndState(0.0, targetPose.getRotation()));
+                path.preventFlipping = flipping;
 
                 Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(
-                        path,
-                        constraints,
-                        3.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+                                path,
+                                constraints,
+                                3.0 // Rotation delay distance in meters. This is how far the robot should travel
+                                    // before attempting to rotate.
                 );
 
                 scheduler.schedule(pathfindingCommand);
@@ -69,4 +73,3 @@ public class GoToPointCommand  extends Command {
         }
 
 }
-

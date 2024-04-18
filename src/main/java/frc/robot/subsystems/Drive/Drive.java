@@ -55,6 +55,10 @@ public class Drive extends SubsystemBase {
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
             lastModulePositions, new Pose2d());
 
+    private SwerveDrivePoseEstimator poseEstimatorWithoutVision = new SwerveDrivePoseEstimator(kinematics,
+            rawGyroRotation,
+            lastModulePositions, new Pose2d());
+
     public Drive(
             GyroIO gyroIO,
             ModuleIO flModuleIO,
@@ -100,14 +104,18 @@ public class Drive extends SubsystemBase {
         visionIO.updateInputs(visionInputs, getPose());
         Logger.processInputs("Vision", visionInputs);
 
+        Logger.recordOutput("WithoutVision/Odometry", poseEstimatorWithoutVision.getEstimatedPosition());
         if (visionInputs.hasEstimate) {
+
             for (int i = 0; i < visionInputs.estimate.length; i++) {
                 poseEstimator.addVisionMeasurement(visionInputs.estimate[i], Timer.getFPGATimestamp());
             }
 
-            if (visionInputs.amphiSighted && !DriverStation.isAutonomous()) {
-                Pose2d target = new Pose2d(1.78, 7.38, Rotation2d.fromDegrees(90));
-                CommandScheduler.getInstance().schedule(new GoToPointCommand(this, CommandScheduler.getInstance(), target));
+            if (visionInputs.loadingSighted && !DriverStation.isAutonomous() && getRotation().getDegrees() <= 170
+                    && getRotation().getDegrees() >= 100) {
+                Pose2d target = new Pose2d(15.26, 1.29, Rotation2d.fromDegrees(120));
+                CommandScheduler.getInstance()
+                        .schedule(new GoToPointCommand(this, CommandScheduler.getInstance(), target, true));
             }
 
         }
@@ -151,6 +159,7 @@ public class Drive extends SubsystemBase {
 
         // Apply odometry update
         poseEstimator.update(rawGyroRotation, modulePositions);
+        poseEstimatorWithoutVision.update(rawGyroRotation, modulePositions);
 
     }
 
@@ -215,6 +224,7 @@ public class Drive extends SubsystemBase {
 
     public void setPose(Pose2d pose) {
         poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+        poseEstimatorWithoutVision.resetPosition(rawGyroRotation, getModulePositions(), pose);
     }
 
     public void addVisionMeasurement(Pose2d visionPose, double timestamp) {

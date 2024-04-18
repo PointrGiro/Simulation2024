@@ -87,6 +87,7 @@ public class VisionIOSim implements VisionIO {
             inputs.targets = Pose3dToPose2d(inputs.targets3d);
             inputs.tagCount = tagCounts(results);
             inputs.amphiSighted = amphiSeenIn(results);
+            inputs.loadingSighted = loadingSeenIn(results);
             inputs.hasEstimate = true;
 
         } else {
